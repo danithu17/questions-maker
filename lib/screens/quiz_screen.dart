@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import '../data/quiz_data.dart';
+import '../data/quiz_data.dart'; // Import eka aniwareyen thiyenna ona
 import 'result_screen.dart';
 
 class QuizScreen extends StatefulWidget {
@@ -15,6 +15,9 @@ class _QuizScreenState extends State<QuizScreen> {
   int score = 0;
   BannerAd? _bannerAd;
   bool _isBannerAdLoaded = false;
+
+  // Me thiyenne oyage QuizData class eke thiyena list eka
+  final List questions = QuizData.alGkQuestions; 
 
   @override
   void initState() {
@@ -36,9 +39,13 @@ class _QuizScreenState extends State<QuizScreen> {
     )..load();
   }
 
-  void answerQuestion(int scoreValue) {
-    score += scoreValue;
-    if (questionIndex < quizQuestions.length - 1) {
+  void answerQuestion(int selectedIndex) {
+    // Check if the answer is correct using your Question model's property
+    if (questions[questionIndex].correctAnswerIndex == selectedIndex) {
+      score++;
+    }
+
+    if (questionIndex < questions.length - 1) {
       setState(() {
         questionIndex++;
       });
@@ -46,7 +53,7 @@ class _QuizScreenState extends State<QuizScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => ResultScreen(score: score, totalQuestions: quizQuestions.length),
+          builder: (context) => ResultScreen(score: score, totalQuestions: questions.length),
         ),
       );
     }
@@ -60,24 +67,37 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentQuestion = quizQuestions[questionIndex];
+    final currentQuestion = questions[questionIndex];
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Quiz')),
+      appBar: AppBar(title: const Text('A/L GK Quiz')),
       body: Column(
         children: [
           Expanded(
-            child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(currentQuestion['question'] as String, style: const TextStyle(fontSize: 20)),
+                  Text(
+                    currentQuestion.questionText, // property name eka questionText
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 20),
-                  ...(currentQuestion['answers'] as List<Map<String, dynamic>>).map((answer) {
-                    return ElevatedButton(
-                      onPressed: () => answerQuestion(answer['score'] as int),
-                      child: Text(answer['text'] as String),
+                  // Options tika map karala buttons hadanawa
+                  ...List.generate(currentQuestion.options.length, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 50),
+                        ),
+                        onPressed: () => answerQuestion(index),
+                        child: Text(currentQuestion.options[index]),
+                      ),
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ),
