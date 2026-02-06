@@ -1,0 +1,67 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.vscode/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .packages file is deprecated. https://github.com/flutter/flutter/issues/48918
+.packages
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android related
+**/android/**/generated/
+**/android/gen/
+**/android/out/
+**/android/local.properties
+**/android/flutter_launcher_icons-*.xml
+**/android/.gradle/
+**/android/app/google-services.json
+
+# iOS related
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/App.framework.dSYM/
+**/ios/Flutter/Flutter.framework.dSYM/
+**/ios/ServiceDefinitions.json
+
+# Web related
+lib/generated_plugin_registrant.dart
+
+# Exceptions to above rules.
+!**/android/app/src/main/res/drawable-mdpi/ic_launcher.png
+!**/android/app/src/main/res/drawable-hdpi/ic_launcher.png
+!**/android/app/src/main/res/drawable-xhdpi/ic_launcher.png
+!**/android/app/src/main/res/drawable-xxhdpi/ic_launcher.png
+!**/android/app/src/main/res/drawable-xxxhdpi/ic_launcher.png
