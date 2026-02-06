@@ -173,7 +173,7 @@ class ResultScreen extends StatelessWidget {
               foregroundColor: const Color(0xFF1A237E),
               padding: const EdgeInsets.symmetric(vertical: 18),
             ),
-            child: const Text('Try Another Exam', style: TextStyle(fontSize: 16, fontWeight: FontWeight.black)),
+            child: const Text('Try Another Exam', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
           ),
         ),
         const SizedBox(height: 16),
