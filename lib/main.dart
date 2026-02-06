@@ -15,14 +15,27 @@ class ExamPrepApp extends StatelessWidget {
       title: 'Exam Prep Quiz',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF1A237E),
           primary: const Color(0xFF1A237E),
-          secondary: const Color(0xFF1A237E),
+          secondary: const Color(0xFF3949AB),
+          surface: Colors.white,
         ),
-        useMaterial3: true,
-        textTheme: GoogleFonts.poppinsTextTheme(),
-        scaffoldBackgroundColor: const Color(0xFFF5F5F7),
+        textTheme: GoogleFonts.outfitTextTheme(),
+        cardTheme: CardTheme(
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          color: Colors.white,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+        ),
+        scaffoldBackgroundColor: const Color(0xFFF8FAFF),
       ),
       home: const HomeScreen(),
     );

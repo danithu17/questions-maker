@@ -37,12 +37,16 @@ class _QuizScreenState extends State<QuizScreen> {
     _timeLeft = 30;
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        _timer?.cancel();
+        return;
+      }
       setState(() {
         if (_timeLeft > 0) {
           _timeLeft--;
         } else {
           _timer?.cancel();
-          _handleAnswer(-1); // Time out
+          _handleAnswer(-1);
         }
       });
     });
@@ -50,7 +54,6 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _handleAnswer(int index) {
     if (_isAnswered) return;
-    
     _timer?.cancel();
     setState(() {
       _selectedAnswerIndex = index;
@@ -60,11 +63,8 @@ class _QuizScreenState extends State<QuizScreen> {
       }
     });
 
-    // Wait for 1.5 seconds before moving to next question
     Future.delayed(const Duration(milliseconds: 1500), () {
-      if (mounted) {
-        _nextQuestion();
-      }
+      if (mounted) _nextQuestion();
     });
   }
 
@@ -82,22 +82,22 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _showInterstitialAdAndNavigate() {
-    // Simulate Interstitial Ad
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 10),
-                Text('Loading Interstitial Ad...'),
-              ],
-            ),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(strokeWidth: 3),
+              const SizedBox(height: 24),
+              const Text('Processing Results...', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const SizedBox(height: 8),
+              Text('Showing Ad', style: TextStyle(color: Colors.grey.shade600)),
+            ],
           ),
         ),
       ),
@@ -105,14 +105,11 @@ class _QuizScreenState extends State<QuizScreen> {
 
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.pop(context); // Close dialog
+        Navigator.pop(context);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => ResultScreen(
-              score: _score,
-              totalQuestions: _questions.length,
-            ),
+            builder: (context) => ResultScreen(score: _score, totalQuestions: _questions.length),
           ),
         );
       }
@@ -125,143 +122,196 @@ class _QuizScreenState extends State<QuizScreen> {
     double progress = (_currentQuestionIndex + 1) / _questions.length;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFF),
       appBar: AppBar(
-        title: const Text('Quiz'),
+        title: const Text('Practice Quiz', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF1A237E),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                   LinearPercentIndicator(
-                    lineHeight: 8.0,
-                    percent: progress,
-                    backgroundColor: Colors.grey.shade300,
-                    progressColor: const Color(0xFF1A237E),
-                    barRadius: const Radius.circular(10),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Question ${_currentQuestionIndex + 1}/${_questions.length}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(Icons.timer, color: Colors.redAccent, size: 20),
-                          const SizedBox(width: 5),
-                          Text(
-                            '$_timeLeft s',
-                            style: const TextStyle(
-                              color: Colors.redAccent,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 30),
+            _buildProgressBar(progress),
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
                 child: Column(
                   children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        question.questionText,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1A237E),
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 30),
+                    _buildTimerSection(),
+                    const SizedBox(height: 24),
+                    _buildQuestionCard(question),
+                    const SizedBox(height: 32),
                     ...List.generate(
                       question.options.length,
-                      (index) => _buildOption(index, question),
+                      (index) => _buildOptionCard(index, question),
                     ),
                   ],
                 ),
               ),
             ),
-            _buildAdPlaceholder(),
+            _buildBottomAd(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildOption(int index, Question question) {
-    Color cardColor = Colors.white;
+  Widget _buildProgressBar(double progress) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+      child: Column(
+        children: [
+          LinearPercentIndicator(
+            lineHeight: 8.0,
+            percent: progress,
+            backgroundColor: Colors.grey.shade100,
+            progressColor: const Color(0xFF1A237E),
+            barRadius: const Radius.circular(10),
+            padding: EdgeInsets.zero,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Question ${_currentQuestionIndex + 1} of ${_questions.length}',
+                style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              const Text('Level 1', style: TextStyle(color: Color(0xFF1A237E), fontWeight: FontWeight.bold, fontSize: 13)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimerSection() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: _timeLeft < 10 ? Colors.red.withOpacity(0.1) : const Color(0xFF1A237E).withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.timer_outlined, size: 18, color: _timeLeft < 10 ? Colors.red : const Color(0xFF1A237E)),
+          const SizedBox(width: 8),
+          Text(
+            '$_timeLeft Seconds Left',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: _timeLeft < 10 ? Colors.red : const Color(0xFF1A237E),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuestionCard(Question question) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1A237E).withOpacity(0.06),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Text(
+        question.questionText,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, height: 1.5, color: Color(0xFF1A237E)),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
+  Widget _buildOptionCard(int index, Question question) {
+    bool isSelected = _selectedAnswerIndex == index;
+    bool isCorrect = index == question.correctAnswerIndex;
+    
+    Color borderColor = Colors.grey.shade200;
+    Color bgColor = Colors.white;
     Color textColor = Colors.black87;
     IconData? icon;
 
     if (_isAnswered) {
-      if (index == question.correctAnswerIndex) {
-        cardColor = Colors.green.shade100;
+      if (isCorrect) {
+        borderColor = Colors.green.shade400;
+        bgColor = Colors.green.shade50;
         textColor = Colors.green.shade900;
-        icon = Icons.check_circle;
-      } else if (index == _selectedAnswerIndex) {
-        cardColor = Colors.red.shade100;
+        icon = Icons.check_circle_rounded;
+      } else if (isSelected) {
+        borderColor = Colors.red.shade400;
+        bgColor = Colors.red.shade50;
         textColor = Colors.red.shade900;
-        icon = Icons.cancel;
+        icon = Icons.cancel_rounded;
       }
+    } else if (isSelected) {
+      borderColor = const Color(0xFF1A237E);
+      bgColor = const Color(0xFF1A237E).withOpacity(0.05);
+      textColor = const Color(0xFF1A237E);
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.only(bottom: 16),
       child: InkWell(
         onTap: () => _handleAnswer(index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: _selectedAnswerIndex == index 
-                  ? const Color(0xFF1A237E) 
-                  : Colors.grey.shade200,
-              width: 2,
-            ),
+            color: bgColor,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: borderColor, width: 2),
           ),
           child: Row(
             children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: isSelected ? Colors.transparent : Colors.grey.shade300),
+                  color: isSelected ? (isCorrect && _isAnswered ? Colors.green : (isCorrect ? Colors.green : (_isAnswered ? Colors.red : const Color(0xFF1A237E)))) : Colors.transparent,
+                ),
+                child: Center(
+                  child: Text(
+                    String.fromCharCode(65 + index),
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.grey.shade600,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 20),
               Expanded(
                 child: Text(
                   question.options[index],
                   style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                     color: textColor,
-                    fontWeight: _selectedAnswerIndex == index ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
               ),
-              if (icon != null) Icon(icon, color: textColor),
+              if (icon != null) Icon(icon, color: textColor, size: 24),
             ],
           ),
         ),
@@ -269,16 +319,15 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 
-  Widget _buildAdPlaceholder() {
+  Widget _buildBottomAd() {
     return Container(
-      width: double.infinity,
       height: 60,
-      color: Colors.grey.shade200,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+      ),
       child: const Center(
-        child: Text(
-          'Banner Ad Placeholder',
-          style: TextStyle(color: Colors.black54, fontSize: 12),
-        ),
+        child: Text('Banner Ad Placeholder', style: TextStyle(color: Colors.black26, fontSize: 11)),
       ),
     );
   }

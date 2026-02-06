@@ -7,89 +7,130 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Select Category',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1A237E),
-                    ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+      body: CustomScrollView(
+        slivers: [
+          _buildSliverAppBar(context),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(24, 32, 24, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildSectionHeader(context, 'Exam Categories', 'Choose your specialization'),
+                  const SizedBox(height: 24),
                   _buildCategoryCard(
                     context,
                     title: 'A/L General Knowledge',
-                    subtitle: 'GK & Current Affairs',
+                    subtitle: 'GK, Current Affairs & Logic',
                     icon: Icons.menu_book_rounded,
-                    color: Colors.blue.shade700,
+                    gradient: const [Color(0xFF1A237E), Color(0xFF3949AB)],
+                    count: '500+ Questions',
                   ),
                   _buildCategoryCard(
                     context,
                     title: 'Government Job Exams',
-                    subtitle: 'Past Papers & IQ',
-                    icon: Icons.work_outline_rounded,
-                    color: Colors.orange.shade700,
+                    subtitle: 'IQ, General Awareness & Math',
+                    icon: Icons.account_balance_rounded,
+                    gradient: const [Color(0xFF004D40), Color(0xFF00897B)],
+                    count: '1200+ Questions',
                   ),
                   _buildCategoryCard(
                     context,
-                    title: 'IQ & Logic',
-                    subtitle: 'Mental Ability Tests',
-                    icon: Icons.psychology_outlined,
-                    color: Colors.green.shade700,
+                    title: 'IQ & Mental Ability',
+                    subtitle: 'Pattern Matching & Logical Series',
+                    icon: Icons.psychology_rounded,
+                    gradient: const [Color(0xFF311B92), Color(0xFF512DA8)],
+                    count: '300+ Questions',
                   ),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader(context, 'Your Stats', 'Track your daily progress'),
+                  const SizedBox(height: 16),
+                  _buildStatsRow(),
+                  const SizedBox(height: 100), // Height for ad space
                 ],
               ),
             ),
-            _buildAdPlaceholder(),
-          ],
+          ),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomAd(),
+    );
+  }
+
+  Widget _buildSliverAppBar(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 220,
+      floating: false,
+      pinned: true,
+      backgroundColor: const Color(0xFF1A237E),
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF1A237E), Color(0xFF3949AB)],
+            ),
+          ),
+          child: Stack(
+            children: [
+              Positioned(
+                right: -50,
+                top: -50,
+                child: CircleAvatar(
+                  radius: 100,
+                  backgroundColor: Colors.white.withOpacity(0.05),
+                ),
+              ),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.white24,
+                        child: Icon(Icons.person, color: Colors.white, size: 30),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Hello, Future Officer!',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Ready to master your exams today?',
+                        style: TextStyle(color: Colors.white.withOpacity(0.8)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(30),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A237E),
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(40),
-          bottomRight: Radius.circular(40),
+  Widget _buildSectionHeader(BuildContext context, String title, String subtitle) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1A237E)),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Icon(Icons.school, color: Colors.white, size: 40),
-          const SizedBox(height: 20),
-          Text(
-            'Welcome to\nExam Prep!',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  height: 1.2,
-                ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Master your exams with our MCQ quiz.',
-            style: TextStyle(color: Colors.white.withOpacity(0.8)),
-          ),
-        ],
-      ),
+        Text(
+          subtitle,
+          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+        ),
+      ],
     );
   }
 
@@ -98,79 +139,139 @@ class HomeScreen extends StatelessWidget {
     required String title,
     required String subtitle,
     required IconData icon,
-    required Color color,
+    required List<Color> gradient,
+    required String count,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const QuizScreen()),
-          );
-        },
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: gradient.first.withOpacity(0.12),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(15),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const QuizScreen()),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: gradient),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 28),
                 ),
-                child: Icon(icon, color: color, size: 30),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    Text(
-                      subtitle,
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 13,
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: gradient.first.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          count,
+                          style: TextStyle(
+                            color: gradient.first,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-            ],
+                Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey.shade400),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAdPlaceholder() {
+  Widget _buildStatsRow() {
+    return Row(
+      children: [
+        _buildStatItem('12', 'Tests done', Icons.assignment_turned_in_rounded, Colors.blue),
+        const SizedBox(width: 16),
+        _buildStatItem('85%', 'Avg Score', Icons.analytics_rounded, Colors.orange),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(String val, String label, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.grey.shade100, width: 2),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 12),
+            Text(val, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomAd() {
     return Container(
-      width: double.infinity,
-      height: 60,
-      color: Colors.grey.shade300,
-      child: const Center(
-        child: Text(
-          'Banner Ad Placeholder',
-          style: TextStyle(color: Colors.black54, fontSize: 12),
+      height: 70,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade100)),
+      ),
+      child: Center(
+        child: Container(
+          width: 320,
+          height: 50,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Center(
+            child: Text('Banner Ad Placeholder', style: TextStyle(color: Colors.black38, fontSize: 12)),
+          ),
         ),
       ),
     );
