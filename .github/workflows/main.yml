@@ -11,17 +11,26 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          # Latest Flutter version eka use karanna kiyanawa
           channel: 'stable'
+          flutter-version: '3.29.0' 
           cache: true
-          # Me kalla dammama version eka force wenawa
-          flutter-version: '3.22.0' 
 
       - name: Install dependencies
         run: flutter pub get
 
-      # Gradle prashne enna nodi thiyaganna meka udaw wenawa
-      - name: Clean Build
+      # Kalin error eka ena path eka clear karanna
+      - name: Clean Project
         run: flutter clean
 
+      # Android build settings update karanna meka udaw wenawa
       - name: Build APK
         run: flutter build apk --release --no-tree-shake-icons
+        env:
+          JAVA_HOME: ${{ env.JAVA_HOME_17_X64 }} # Java version eka fix karanna
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
