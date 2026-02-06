@@ -79,7 +79,7 @@ class HomeScreen extends StatelessWidget {
                 top: -50,
                 child: CircleAvatar(
                   radius: 100,
-                  backgroundColor: Colors.white.withOpacity(0.05),
+                  backgroundColor: Colors.white.withValues(alpha: 0.05),
                 ),
               ),
               SafeArea(
@@ -105,7 +105,7 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         'Ready to master your exams today?',
-                        style: TextStyle(color: Colors.white.withOpacity(0.8)),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
                       ),
                     ],
                   ),
@@ -149,7 +149,7 @@ class HomeScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: gradient.first.withOpacity(0.12),
+            color: gradient.first.withValues(alpha: 0.12),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -199,7 +199,7 @@ class HomeScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: gradient.first.withOpacity(0.08),
+                          color: gradient.first.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(

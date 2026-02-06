@@ -196,7 +196,7 @@ class _QuizScreenState extends State<QuizScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: _timeLeft < 10 ? Colors.red.withOpacity(0.1) : const Color(0xFF1A237E).withOpacity(0.05),
+        color: _timeLeft < 10 ? Colors.red.withValues(alpha: 0.1) : const Color(0xFF1A237E).withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -225,7 +225,7 @@ class _QuizScreenState extends State<QuizScreen> {
         borderRadius: BorderRadius.circular(32),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1A237E).withOpacity(0.06),
+            color: const Color(0xFF1A237E).withValues(alpha: 0.06),
             blurRadius: 30,
             offset: const Offset(0, 10),
           ),
@@ -262,7 +262,7 @@ class _QuizScreenState extends State<QuizScreen> {
       }
     } else if (isSelected) {
       borderColor = const Color(0xFF1A237E);
-      bgColor = const Color(0xFF1A237E).withOpacity(0.05);
+      bgColor = const Color(0xFF1A237E).withValues(alpha: 0.05);
       textColor = const Color(0xFF1A237E);
     }
 

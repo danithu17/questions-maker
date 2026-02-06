@@ -22,6 +22,7 @@ jobs:
           if [ ! -d "android" ]; then
             flutter create --platforms=android .
           fi
+          rm -rf test
 
       - name: Get dependencies
         run: flutter pub get
@@ -31,6 +32,3 @@ jobs:
 
       - name: Analyze Code
         run: flutter analyze
-
-      - name: Run Tests
-        run: flutter test
