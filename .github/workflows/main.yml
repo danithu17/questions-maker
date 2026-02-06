@@ -13,16 +13,15 @@ jobs:
         with:
           channel: 'stable'
           cache: true
+          # Me kalla dammama version eka force wenawa
+          flutter-version: '3.22.0' 
 
       - name: Install dependencies
         run: flutter pub get
 
-      # Format check eka ain kala, kelinma build ekata yanawa
-      - name: Build APK
-        run: flutter build apk --release
+      # Gradle prashne enna nodi thiyaganna meka udaw wenawa
+      - name: Clean Build
+        run: flutter clean
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+      - name: Build APK
+        run: flutter build apk --release --no-tree-shake-icons
