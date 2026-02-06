@@ -1,8 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'quiz_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  BannerAd? _bannerAd;
+  bool _isBannerLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBannerAd();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-7036399347927896/7504313122', // Real Banner ID
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() => _isBannerLoaded = true);
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+        },
+      ),
+    )..load();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -46,14 +83,21 @@ class HomeScreen extends StatelessWidget {
                   _buildSectionHeader(context, 'Your Stats', 'Track your daily progress'),
                   const SizedBox(height: 16),
                   _buildStatsRow(),
-                  const SizedBox(height: 100), // Height for ad space
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomAd(),
+      bottomNavigationBar: _isBannerLoaded 
+        ? Container(
+            alignment: Alignment.center,
+            width: _bannerAd!.size.width.toDouble(),
+            height: _bannerAd!.size.height.toDouble(),
+            child: AdWidget(ad: _bannerAd!),
+          )
+        : _buildBottomAdPlaceholder(),
     );
   }
 
@@ -254,25 +298,15 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomAd() {
+  Widget _buildBottomAdPlaceholder() {
     return Container(
-      height: 70,
+      height: 60,
       decoration: BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: Colors.grey.shade100)),
       ),
-      child: Center(
-        child: Container(
-          width: 320,
-          height: 50,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Center(
-            child: Text('Banner Ad Placeholder', style: TextStyle(color: Colors.black38, fontSize: 12)),
-          ),
-        ),
+      child: const Center(
+        child: Text('Loading Ad...', style: TextStyle(color: Colors.black38, fontSize: 11)),
       ),
     );
   }

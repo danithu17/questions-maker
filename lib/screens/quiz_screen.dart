@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import '../data/quiz_data.dart';
 import '../models/question.dart';
@@ -13,7 +14,7 @@ class QuizScreen extends StatefulWidget {
 }
 
 class _QuizScreenState extends State<QuizScreen> {
-  final List<Question> _questions = QuizData.alGkQuestions;
+  late List<Question> _questions;
   int _currentQuestionIndex = 0;
   int _score = 0;
   int _timeLeft = 30;
@@ -21,16 +22,59 @@ class _QuizScreenState extends State<QuizScreen> {
   int? _selectedAnswerIndex;
   bool _isAnswered = false;
 
+  // Ads
+  BannerAd? _bannerAd;
+  bool _isBannerLoaded = false;
+  InterstitialAd? _interstitialAd;
+
   @override
   void initState() {
     super.initState();
+    // Shuffle questions
+    _questions = List.from(QuizData.alGkQuestions)..shuffle();
     _startTimer();
+    _loadBannerAd();
+    _loadInterstitialAd();
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _bannerAd?.dispose();
+    _interstitialAd?.dispose();
     super.dispose();
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-7036399347927896/7504313122', // Real Banner ID from User
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() => _isBannerLoaded = true);
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          debugPrint('BannerAd failed to load: $error');
+        },
+      ),
+    )..load();
+  }
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: 'ca-app-pub-3940256099942544/1033173712', // Test Interstitial ID (replace with real one when available)
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+        },
+        onAdFailedToLoad: (error) {
+          debugPrint('InterstitialAd failed to load: $error');
+        },
+      ),
+    );
   }
 
   void _startTimer() {
@@ -77,62 +121,52 @@ class _QuizScreenState extends State<QuizScreen> {
       });
       _startTimer();
     } else {
-      _showInterstitialAdAndNavigate();
+      _showAdAndNavigate();
     }
   }
 
-  void _showInterstitialAdAndNavigate() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(strokeWidth: 3),
-              const SizedBox(height: 24),
-              const Text('Processing Results...', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              const SizedBox(height: 8),
-              Text('Showing Ad', style: TextStyle(color: Colors.grey.shade600)),
-            ],
-          ),
-        ),
+  void _showAdAndNavigate() {
+    if (_interstitialAd != null) {
+      _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+        onAdDismissedFullScreenContent: (ad) {
+          ad.dispose();
+          _navigateToResults();
+        },
+        onAdFailedToShowFullScreenContent: (ad, error) {
+          ad.dispose();
+          _navigateToResults();
+        },
+      );
+      _interstitialAd!.show();
+    } else {
+      _navigateToResults();
+    }
+  }
+
+  void _navigateToResults() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ResultScreen(score: _score, totalQuestions: _questions.length),
       ),
     );
-
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        Navigator.pop(context);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResultScreen(score: _score, totalQuestions: _questions.length),
-          ),
-        );
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_questions.isEmpty) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    
     final question = _questions[_currentQuestionIndex];
     double progress = (_currentQuestionIndex + 1) / _questions.length;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
       appBar: AppBar(
-        title: const Text('Practice Quiz', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text('Performance Quiz', style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF1A237E),
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
       ),
       body: SafeArea(
         child: Column(
@@ -155,7 +189,15 @@ class _QuizScreenState extends State<QuizScreen> {
                 ),
               ),
             ),
-            _buildBottomAd(),
+            if (_isBannerLoaded)
+              Container(
+                alignment: Alignment.center,
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              )
+            else
+              _buildAdPlaceholder(),
           ],
         ),
       ),
@@ -184,7 +226,7 @@ class _QuizScreenState extends State<QuizScreen> {
                 'Question ${_currentQuestionIndex + 1} of ${_questions.length}',
                 style: TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.bold, fontSize: 13),
               ),
-              const Text('Level 1', style: TextStyle(color: Color(0xFF1A237E), fontWeight: FontWeight.bold, fontSize: 13)),
+              const Text('Active Quiz', style: TextStyle(color: Color(0xFF1A237E), fontWeight: FontWeight.bold, fontSize: 13)),
             ],
           ),
         ],
@@ -319,16 +361,11 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 
-  Widget _buildBottomAd() {
+  Widget _buildAdPlaceholder() {
     return Container(
       height: 60,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
-      ),
-      child: const Center(
-        child: Text('Banner Ad Placeholder', style: TextStyle(color: Colors.black26, fontSize: 11)),
-      ),
+      width: double.infinity,
+      color: Colors.transparent,
     );
   }
 }
